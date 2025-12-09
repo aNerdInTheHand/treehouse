@@ -3,20 +3,43 @@ use std::io::stdin;
 // with derive Debug, you can print a struct with {:?}
 // (as long as each member field supports the derived feature)
 #[derive(Debug)]
+enum VisitorAction {
+    Accept, // use like let visitor_action = VisitorAction::Accept;
+    AcceptWithNote { note: String },
+    // e.g. VisitorAction::AcceptWithNote{ note: "my note".to_string() };
+    Refuse,
+    Probation
+}
+
+#[derive(Debug)]
 struct Visitor {
     name: String,
-    greeting: String,
+    action: VisitorAction,
+    age: i8
 }
 
 impl Visitor {
-    fn new(name: &str, greeting: &str) -> Self {
+    fn new(name: &str, action: VisitorAction, age: i8) -> Self {
         Self {
             name: name.to_lowercase(),
-            greeting: greeting.to_string(),
+            action,
+            age
         }
     }
     fn greet_visitor(&self) {
-        println!("{}", self.greeting);
+        match &self.action {
+            VisitorAction::Accept => println!("Welcome to the Treehouse, {}.", self.name),
+            VisitorAction::AcceptWithNote { note } => {
+                println!("Welcome to the Treehouse, {}.", self.name);
+                println!("{}", note);
+                if self.age < 37 {
+                    println!("Do not serve alcohol to {}.", self.name);
+                }
+            }
+            VisitorAction::Probation => println!("{} is now a probationary member.", self.name),
+            VisitorAction::Refuse => println!("Do not allow {} in!", self.name),
+            _ => println!("No record of user - use your judgement.")
+        }
     }
 }
 
@@ -36,9 +59,11 @@ fn capture_name() -> String {
 fn main() {
     // vectors can be dynamically resized - arrays are static
     let mut visitor_list = vec![
-        Visitor::new("Bort", "Welcome home, Mr Bort sir."),
-        Visitor::new("Bart", "What a silly name, go away."),
-        Visitor::new("Bert", "Ah, Bertie my man, how's it hanging?")
+        Visitor::new("Bort", VisitorAction::Accept, 39),
+        Visitor::new("Dave", VisitorAction::AcceptWithNote{
+            note: String::from("Oat milk is in the fridge")
+        }, 15),
+        Visitor::new("Mabel", VisitorAction::Refuse, 32)
     ];
 
     loop {
@@ -56,7 +81,7 @@ fn main() {
                     break;
                 } else {
                     println!("{} is not on the visitor list.", name);
-                    visitor_list.push(Visitor::new(&name, "New friend!"))
+                    visitor_list.push(Visitor::new(&name, VisitorAction::Probation, 0));
                 }
             }
         }
